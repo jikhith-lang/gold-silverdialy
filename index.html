@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gold &amp; Silver Prices in India</title>
+<style>
+:root{--bg:#f7f3ea;--card:#fff;--ink:#14213d;--mute:#667085;--line:#e4dccb;--gold:#b7810a;--goldbg:#fff4d6;--silver:#5d6674;--silverbg:#eceff3;--up:#0b7a3b;--down:#c0392b;--btn:#14213d;--btnink:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1a33;--card:#12264a;--ink:#f3f6fb;--mute:#9fb0cc;--line:#25406e;--gold:#f5c84a;--goldbg:#2a2a2e;--silver:#c3cad4;--silverbg:#1b2f55;--up:#4cd283;--down:#ff7a6b;--btn:#f5c84a;--btnink:#14213d}}
+:root[data-theme="dark"]{--bg:#0b1a33;--card:#12264a;--ink:#f3f6fb;--mute:#9fb0cc;--line:#25406e;--gold:#f5c84a;--goldbg:#2a2a2e;--silver:#c3cad4;--silverbg:#1b2f55;--up:#4cd283;--down:#ff7a6b;--btn:#f5c84a;--btnink:#14213d}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Helvetica,Arial,sans-serif}
+.flag{height:6px;background:linear-gradient(90deg,#ff9933 33%,#fff 33% 66%,#138808 66%)}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(28px,6vw,44px);margin:6px 0 2px}
+h1 span{color:var(--gold)}
+.sub{color:var(--mute);margin:0 0 18px;font-size:14px}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.card.g{border-top:4px solid var(--gold)}.card.s{border-top:4px solid var(--silver)}
+.lbl{font-size:12px;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.big{font-family:Georgia,serif;font-size:30px;font-weight:bold;margin:4px 0}
+.small{font-size:13px;color:var(--mute)}
+.chg{font-size:13px;font-weight:bold}.up{color:var(--up)}.down{color:var(--down)}
+h2{font-family:Georgia,serif;font-size:20px;margin:26px 0 10px}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:4px}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+button{background:var(--btn);color:var(--btnink);border:0;border-radius:10px;padding:10px 16px;font-size:15px;font-weight:bold;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.total{font-family:Georgia,serif;font-size:34px;color:var(--gold);font-weight:bold}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl td,.tbl th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+.scroll{overflow-x:auto}
+a{color:var(--gold)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#999;margin-right:8px}.dot.ok{background:var(--up)}.dot.bad{background:var(--down)}
+.tbl tr.me td{background:var(--goldbg);font-weight:bold}
+.tbl td.n,.tbl th.n{text-align:right;white-space:nowrap}
+.mycity{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:12px}
+.mycity .big{font-size:22px}
+.note{font-size:12px;color:var(--mute);margin-top:22px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="flag"></div>
+<div class="wrap">
+  <div class="row"><div>
+    <h1>Gold <span>&amp;</span> Silver Prices</h1>
+    <p class="sub" id="today">India · daily rates</p>
+  </div><button class="ghost" id="themeBtn">Theme</button></div>
+
+  <div class="grid" id="cards"></div>
+  <p class="small" id="asof" style="margin-top:8px"></p>
+
+  <div class="card" style="margin-top:12px">
+    <div class="row"><div><span class="dot" id="dot"></span><b id="liveTxt">Connecting to live rates…</b><div class="small" id="liveSub"></div></div>
+    <button id="refresh">Refresh now</button></div>
+    <div class="fields" style="margin-top:10px"><div><label>Import duty + GST added to international price (%)</label><input id="prem" type="number" step="0.1" inputmode="decimal" value="9.2"></div></div>
+    <div class="small" style="margin-top:8px">Live rate = international spot price × USD/INR × (1 + duty/GST %). It refreshes every minute and can differ from your jeweller’s board rate by 1–3%. Adjust the % to match local rates.</div>
+  </div>
+
+  <h2>City-wise rates</h2>
+  <div class="card">
+    <div class="fields">
+      <div><label>Your city</label><select id="city"></select></div>
+      <div><label>Search cities</label><input id="cityQ" type="search" placeholder="e.g. Pune"></div>
+    </div>
+    <div class="mycity" id="myCity"></div>
+    <div class="scroll" style="margin-top:14px"><table class="tbl" id="cityTbl"></table></div>
+    <div class="small" style="margin-top:8px">City rates are estimates. They start from the live India rate above and add each city’s usual difference, which comes from local taxes, transport costs and local jewellers’ association rates. Your jeweller’s rate may still differ a little. The calculator below uses the rate for your city.</div>
+  </div>
+
+  <h2>Update today’s rates</h2>
+  <div class="card">
+    <div class="fields">
+      <div><label>24K gold · ₹ per 10 g</label><input id="inG" type="number" inputmode="decimal"></div>
+      <div><label>Silver · ₹ per kg</label><input id="inS" type="number" inputmode="decimal"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <span class="small">22K and 18K are worked out from 24K by purity. Get today’s rate from the links at the bottom.</span>
+      <span><button id="save">Save today’s rates</button> <button class="ghost" id="reset">Reset</button></span>
+    </div>
+  </div>
+
+  <h2>Price calculator</h2>
+  <div class="card">
+    <div class="fields">
+      <div><label>Metal</label><select id="cMetal"><option value="gold">Gold</option><option value="silver">Silver</option></select></div>
+      <div><label>Purity</label><select id="cPur"></select></div>
+      <div><label>Weight (grams)</label><input id="cW" type="number" inputmode="decimal" value="10"></div>
+      <div><label>Making charges (%)</label><input id="cM" type="number" inputmode="decimal" value="8"></div>
+      <div><label>GST (%)</label><input id="cT" type="number" inputmode="decimal" value="3"></div>
+    </div>
+    <div style="margin-top:14px"><div class="lbl">Estimated total · <span id="cCity"></span></div><div class="total" id="cTot"></div><div class="small" id="cBrk"></div></div>
+  </div>
+
+  <h2>24K gold trend</h2>
+  <div class="card"><div id="chart"></div></div>
+
+  <h2>History</h2>
+  <div class="card scroll"><table class="tbl" id="hist"></table></div>
+
+  <p class="note">
+    Rates are calculated from international gold and silver prices (gold-api.com) and USD/INR (open.er-api.com). If live data can’t load, the app shows the last saved rates. Actual jewellery prices vary by city and jeweller, and exclude making charges and GST. Check live rates:
+    <a href="https://www.goodreturns.in/gold-rates/" target="_blank" rel="noopener">GoodReturns gold</a> ·
+    <a href="https://www.goodreturns.in/silver-rates/" target="_blank" rel="noopener">GoodReturns silver</a> ·
+    <a href="https://www.mcxindia.com/" target="_blank" rel="noopener">MCX India</a>. For information only, not financial advice.
+  </p>
+</div>
+
+<script>
+(function(){
+var KEY='in-gold-silver-v1';
+var SEED={asOf:'Gold 18 Nov 2026 · Silver 16 Nov 2026',g:133260,s:190000,
+ hist:[{d:'2026-11-05',g:146020,s:null},{d:'2026-11-07',g:142860,s:null},{d:'2026-11-14',g:137620,s:195000},{d:'2026-11-16',g:136800,s:190000},{d:'2026-11-18',g:133260,s:null}]};
+var st=null;
+try{var raw=localStorage.getItem(KEY);if(raw)st=JSON.parse(raw)}catch(e){}
+if(!st||!st.hist)st=JSON.parse(JSON.stringify(SEED));
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+var inr=function(n){return '₹'+Math.round(n).toLocaleString('en-IN')};
+var PUR={24:1,22:22/24,18:18/24};
+// Typical % difference from the national (Mumbai) benchmark: [city, gold %, silver %]
+var CITIES=[['Mumbai',0,0],['Delhi',0.11,0],['Kolkata',0,0],['Chennai',0.35,5],['Bengaluru',0,0],['Hyderabad',0,5],
+ ['Ahmedabad',0.04,0],['Pune',0,0],['Kerala (Kochi)',0,5],['Jaipur',0.11,0],['Lucknow',0.11,0],['Chandigarh',0.11,0],
+ ['Patna',0.04,0],['Bhubaneswar',0,5],['Coimbatore',0.35,5],['Madurai',0.35,5],['Surat',0.04,0],['Nagpur',0,0],
+ ['Visakhapatnam',0,5],['Vijayawada',0,5],['Mysuru',0,0],['Nashik',0,0],['Vadodara',0.04,0],['Mangaluru',0,0]];
+function cityOf(n){for(var i=0;i<CITIES.length;i++)if(CITIES[i][0]===n)return CITIES[i];return CITIES[0]}
+
+try{var th=localStorage.getItem(KEY+'-theme');if(th)document.documentElement.setAttribute('data-theme',th)}catch(e){}
+$('themeBtn').onclick=function(){
+  var dark=document.documentElement.getAttribute('data-theme')?document.documentElement.getAttribute('data-theme')==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  var n=dark?'light':'dark';document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem(KEY+'-theme',n)}catch(e){}
+};
+
+$('today').textContent='India · '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function prev(field){
+  for(var i=st.hist.length-2;i>=0;i--){if(st.hist[i][field]!=null)return st.hist[i][field]}
+  return null;
+}
+function chg(cur,p,scale){
+  if(p==null)return '<span class="small">no earlier rate</span>';
+  var d=(cur-p)*scale,pc=(cur-p)/p*100;
+  if(Math.abs(d)<0.5)return '<span class="chg">unchanged</span>';
+  return '<span class="chg '+(d>0?'up':'down')+'">'+(d>0?'▲ ':'▼ ')+inr(Math.abs(d))+' ('+Math.abs(pc).toFixed(2)+'%)</span>';
+}
+function render(){
+  var g=st.g,s=st.s,pg=prev('g'),ps=prev('s');
+  var h='';
+  [24,22,18].forEach(function(k){
+    var p10=g*PUR[k];
+    h+='<div class="card g"><div class="lbl">Gold '+k+'K</div><div class="big">'+inr(p10/10)+'<span class="small"> /g</span></div><div class="small">'+inr(p10)+' per 10 g</div>'+(k===24?chg(g,pg,1):'')+'</div>';
+  });
+  h+='<div class="card s"><div class="lbl">Silver 999</div><div class="big">'+inr(s/1000)+'<span class="small"> /g</span></div><div class="small">'+inr(s)+' per kg</div>'+chg(s,ps,1)+'</div>';
+  $('cards').innerHTML=h;
+  $('asof').textContent='Rates as of: '+st.asOf+' (24K change is vs the previous saved rate)';
+  $('inG').value=g;$('inS').value=s;
+  cities();calc();chart();table();
+}
+function cities(){
+  var me=cityOf(st.city),q=($('cityQ').value||'').trim().toLowerCase();
+  $('city').value=me[0];
+  var gc=st.g*(1+me[1]/100),sc=st.s*(1+me[2]/100);
+  $('myCity').innerHTML=[24,22,18].map(function(k){
+    return '<div class="card g"><div class="lbl">'+me[0]+' · '+k+'K</div><div class="big">'+inr(gc*PUR[k])+'</div><div class="small">per 10 g · '+inr(gc*PUR[k]/10)+'/g</div></div>';
+  }).join('')+'<div class="card s"><div class="lbl">'+me[0]+' · Silver</div><div class="big">'+inr(sc)+'</div><div class="small">per kg · '+inr(sc/1000)+'/g</div></div>';
+  var rows=CITIES.filter(function(c){return !q||c[0].toLowerCase().indexOf(q)>=0}).map(function(c){
+    var g=st.g*(1+c[1]/100),s=st.s*(1+c[2]/100);
+    return '<tr'+(c[0]===me[0]?' class="me"':'')+'><td>'+c[0]+'</td><td class="n">'+inr(g)+'</td><td class="n">'+inr(g*PUR[22])+'</td><td class="n">'+inr(g*PUR[18])+'</td><td class="n">'+inr(s)+'</td></tr>';
+  }).join('');
+  $('cityTbl').innerHTML='<tr><th>City</th><th class="n">24K / 10 g</th><th class="n">22K / 10 g</th><th class="n">18K / 10 g</th><th class="n">Silver / kg</th></tr>'+(rows||'<tr><td colspan="5" class="small">No matching city.</td></tr>');
+}
+$('city').innerHTML=CITIES.slice().sort(function(a,b){return a[0].localeCompare(b[0])}).map(function(c){return '<option>'+c[0]+'</option>'}).join('');
+if(!st.city)st.city='Mumbai';
+$('city').value=cityOf(st.city)[0];
+$('city').onchange=function(){st.city=$('city').value;persist();cities();calc()};
+$('cityQ').oninput=cities;
+function calc(){
+  var m=$('cMetal').value,pur=parseFloat($('cPur').value)||1,w=parseFloat($('cW').value)||0,mk=parseFloat($('cM').value)||0,tx=parseFloat($('cT').value)||0;
+  var c=cityOf(st.city);
+  var perG=m==='gold'?st.g/10*(1+c[1]/100):st.s/1000*(1+c[2]/100);
+  $('cCity').textContent=c[0];
+  var base=perG*pur*w,make=base*mk/100,gst=(base+make)*tx/100;
+  $('cTot').textContent=inr(base+make+gst);
+  $('cBrk').textContent='Metal '+inr(base)+' + making '+inr(make)+' + GST '+inr(gst);
+}
+function fillPur(){
+  var m=$('cMetal').value,o=m==='gold'?[['24K',1],['22K',22/24],['18K',18/24]]:[['999 fine',1],['925 sterling',0.925]];
+  $('cPur').innerHTML=o.map(function(x,i){return '<option value="'+x[1]+'"'+(m==='gold'&&i===1?' selected':'')+'>'+x[0]+'</option>'}).join('');
+  $('cM').value=m==='gold'?8:12;
+}
+function chart(){
+  var pts=st.hist.filter(function(r){return r.g!=null});
+  if(pts.length<2){$('chart').innerHTML='<p class="small">Save rates on a few days to see the trend.</p>';return}
+  var W=800,H=220,P=36,mn=Math.min.apply(null,pts.map(function(r){return r.g})),mx=Math.max.apply(null,pts.map(function(r){return r.g}));
+  if(mx===mn){mx+=1}
+  var xy=pts.map(function(r,i){return [P+i*(W-2*P)/(pts.length-1),H-P-(r.g-mn)/(mx-mn)*(H-2*P)]});
+  var path=xy.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ');
+  var dots=xy.map(function(p,i){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="var(--gold)"/><text x="'+p[0]+'" y="'+(H-10)+'" text-anchor="middle" font-size="12" fill="var(--mute)">'+pts[i].d.slice(5).split('-').reverse().join('/')+'</text>'}).join('');
+  $('chart').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="24K gold per 10 g trend"><polyline points="'+path+'" fill="none" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"/>'+dots+'<text x="'+P+'" y="16" font-size="12" fill="var(--mute)">High '+inr(mx)+'</text><text x="'+(W-P)+'" y="16" text-anchor="end" font-size="12" fill="var(--mute)">Low '+inr(mn)+'</text></svg>';
+}
+function table(){
+  var rows=st.hist.slice().reverse().map(function(r){
+    return '<tr><td>'+r.d.split('-').reverse().join('/')+'</td><td>'+inr(r.g)+'</td><td>'+(r.s!=null?inr(r.s):'–')+'</td></tr>';
+  }).join('');
+  $('hist').innerHTML='<tr><th>Date</th><th>24K / 10 g</th><th>Silver / kg</th></tr>'+rows;
+}
+$('save').onclick=function(){
+  var g=parseFloat($('inG').value),s=parseFloat($('inS').value);
+  if(!(g>0)||!(s>0)){alert('Please enter both rates.');return}
+  var d=new Date(),iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  var last=st.hist[st.hist.length-1];
+  if(last&&last.d===iso){last.g=g;last.s=s}else{st.hist.push({d:iso,g:g,s:s})}
+  st.hist=st.hist.slice(-60);st.g=g;st.s=s;
+  st.asOf=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  persist();render();
+};
+$('reset').onclick=function(){if(confirm('Reset to the starting rates and clear saved history?')){st=JSON.parse(JSON.stringify(SEED));persist();render()}};
+['cMetal'].forEach(function(i){$(i).onchange=function(){fillPur();calc()}});
+['cPur','cW','cM','cT'].forEach(function(i){$(i).oninput=calc;$(i).onchange=calc});
+
+var PREM=(typeof st.prem==='number')?st.prem:9.2;$('prem').value=PREM;
+function stamp(g,s){
+  var d=new Date(),iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  var last=st.hist[st.hist.length-1];
+  if(last&&last.d===iso){last.g=g;last.s=s}else{st.hist.push({d:iso,g:g,s:s})}
+  st.hist=st.hist.slice(-60);st.g=g;st.s=s;
+}
+function getJSON(u){var c=new AbortController(),t=setTimeout(function(){c.abort()},10000);
+  return fetch(u,{signal:c.signal,cache:'no-store'}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
+function setLive(ok,msg,sub){$('dot').className='dot '+(ok?'ok':'bad');$('liveTxt').textContent=msg;$('liveSub').textContent=sub||''}
+function live(){
+  $('liveTxt').textContent='Fetching live rates…';
+  Promise.all([getJSON('https://api.gold-api.com/price/XAU'),getJSON('https://api.gold-api.com/price/XAG'),getJSON('https://open.er-api.com/v6/latest/USD')]).then(function(r){
+    var xau=r[0].price,xag=r[1].price,fx=r[2].rates&&r[2].rates.INR;
+    if(!(xau>0&&xag>0&&fx>0))throw new Error('Unexpected data');
+    var f=1+(parseFloat($('prem').value)||0)/100,oz=31.1034768;
+    stamp(Math.round(xau/oz*10*fx*f),Math.round(xag/oz*1000*fx*f));
+    st.prem=parseFloat($('prem').value)||0;
+    var n=new Date();st.asOf='Live · '+n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+', '+n.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    persist();render();
+    setLive(true,'Live rates connected','Gold $'+xau.toFixed(2)+'/oz · Silver $'+xag.toFixed(2)+'/oz · USD/INR '+fx.toFixed(2));
+  }).catch(function(e){
+    setLive(false,'Live rates unavailable – showing last saved rates',String(e.message||e)+'. You can enter rates manually below.');
+  });
+}
+$('refresh').onclick=live;
+$('prem').onchange=live;
+setInterval(live,60000);
+fillPur();render();live();
+})();
+</script>
+</body>
+</html>

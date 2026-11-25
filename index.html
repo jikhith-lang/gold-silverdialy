@@ -36,10 +36,6 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line
 .scroll{overflow-x:auto}
 a{color:var(--gold)}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#999;margin-right:8px}.dot.ok{background:var(--up)}.dot.bad{background:var(--down)}
-.tbl tr.me td{background:var(--goldbg);font-weight:bold}
-.tbl td.n,.tbl th.n{text-align:right;white-space:nowrap}
-.mycity{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:12px}
-.mycity .big{font-size:22px}
 .note{font-size:12px;color:var(--mute);margin-top:22px;line-height:1.5}
 </style>
 </head>
@@ -57,19 +53,8 @@ a{color:var(--gold)}
   <div class="card" style="margin-top:12px">
     <div class="row"><div><span class="dot" id="dot"></span><b id="liveTxt">Connecting to live rates…</b><div class="small" id="liveSub"></div></div>
     <button id="refresh">Refresh now</button></div>
-    <div class="fields" style="margin-top:10px"><div><label>Import duty + GST added to international price (%)</label><input id="prem" type="number" step="0.1" inputmode="decimal" value="9.2"></div></div>
-    <div class="small" style="margin-top:8px">Live rate = international spot price × USD/INR × (1 + duty/GST %). It refreshes every minute and can differ from your jeweller’s board rate by 1–3%. Adjust the % to match local rates.</div>
-  </div>
-
-  <h2>City-wise rates</h2>
-  <div class="card">
-    <div class="fields">
-      <div><label>Your city</label><select id="city"></select></div>
-      <div><label>Search cities</label><input id="cityQ" type="search" placeholder="e.g. Pune"></div>
-    </div>
-    <div class="mycity" id="myCity"></div>
-    <div class="scroll" style="margin-top:14px"><table class="tbl" id="cityTbl"></table></div>
-    <div class="small" style="margin-top:8px">City rates are estimates. They start from the live India rate above and add each city’s usual difference, which comes from local taxes, transport costs and local jewellers’ association rates. Your jeweller’s rate may still differ a little. The calculator below uses the rate for your city.</div>
+    <div class="fields" style="margin-top:10px"><div><label>Gold: India premium over international price (%)</label><input id="prem" type="number" step="0.1" inputmode="decimal" value="18"></div><div><label>Silver: India premium over international price (%)</label><input id="premS" type="number" step="0.1" inputmode="decimal" value="33"></div></div>
+    <div class="small" style="margin-top:8px">Live rate = international spot price × USD/INR × (1 + premium %). The premium covers import duty, GST and local market premium. Defaults (gold 18%, silver 33%) are estimates worked out from reported Indian rates in mid-November 2026. Adjust them until the cards match your jeweller or MCX rate; your values are remembered.</div>
   </div>
 
   <h2>Update today’s rates</h2>
@@ -93,7 +78,7 @@ a{color:var(--gold)}
       <div><label>Making charges (%)</label><input id="cM" type="number" inputmode="decimal" value="8"></div>
       <div><label>GST (%)</label><input id="cT" type="number" inputmode="decimal" value="3"></div>
     </div>
-    <div style="margin-top:14px"><div class="lbl">Estimated total · <span id="cCity"></span></div><div class="total" id="cTot"></div><div class="small" id="cBrk"></div></div>
+    <div style="margin-top:14px"><div class="lbl">Estimated total</div><div class="total" id="cTot"></div><div class="small" id="cBrk"></div></div>
   </div>
 
   <h2>24K gold trend</h2>
@@ -122,12 +107,6 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 var $=function(i){return document.getElementById(i)};
 var inr=function(n){return '₹'+Math.round(n).toLocaleString('en-IN')};
 var PUR={24:1,22:22/24,18:18/24};
-// Typical % difference from the national (Mumbai) benchmark: [city, gold %, silver %]
-var CITIES=[['Mumbai',0,0],['Delhi',0.11,0],['Kolkata',0,0],['Chennai',0.35,5],['Bengaluru',0,0],['Hyderabad',0,5],
- ['Ahmedabad',0.04,0],['Pune',0,0],['Kerala (Kochi)',0,5],['Jaipur',0.11,0],['Lucknow',0.11,0],['Chandigarh',0.11,0],
- ['Patna',0.04,0],['Bhubaneswar',0,5],['Coimbatore',0.35,5],['Madurai',0.35,5],['Surat',0.04,0],['Nagpur',0,0],
- ['Visakhapatnam',0,5],['Vijayawada',0,5],['Mysuru',0,0],['Nashik',0,0],['Vadodara',0.04,0],['Mangaluru',0,0]];
-function cityOf(n){for(var i=0;i<CITIES.length;i++)if(CITIES[i][0]===n)return CITIES[i];return CITIES[0]}
 
 try{var th=localStorage.getItem(KEY+'-theme');if(th)document.documentElement.setAttribute('data-theme',th)}catch(e){}
 $('themeBtn').onclick=function(){
@@ -159,31 +138,11 @@ function render(){
   $('cards').innerHTML=h;
   $('asof').textContent='Rates as of: '+st.asOf+' (24K change is vs the previous saved rate)';
   $('inG').value=g;$('inS').value=s;
-  cities();calc();chart();table();
+  calc();chart();table();
 }
-function cities(){
-  var me=cityOf(st.city),q=($('cityQ').value||'').trim().toLowerCase();
-  $('city').value=me[0];
-  var gc=st.g*(1+me[1]/100),sc=st.s*(1+me[2]/100);
-  $('myCity').innerHTML=[24,22,18].map(function(k){
-    return '<div class="card g"><div class="lbl">'+me[0]+' · '+k+'K</div><div class="big">'+inr(gc*PUR[k])+'</div><div class="small">per 10 g · '+inr(gc*PUR[k]/10)+'/g</div></div>';
-  }).join('')+'<div class="card s"><div class="lbl">'+me[0]+' · Silver</div><div class="big">'+inr(sc)+'</div><div class="small">per kg · '+inr(sc/1000)+'/g</div></div>';
-  var rows=CITIES.filter(function(c){return !q||c[0].toLowerCase().indexOf(q)>=0}).map(function(c){
-    var g=st.g*(1+c[1]/100),s=st.s*(1+c[2]/100);
-    return '<tr'+(c[0]===me[0]?' class="me"':'')+'><td>'+c[0]+'</td><td class="n">'+inr(g)+'</td><td class="n">'+inr(g*PUR[22])+'</td><td class="n">'+inr(g*PUR[18])+'</td><td class="n">'+inr(s)+'</td></tr>';
-  }).join('');
-  $('cityTbl').innerHTML='<tr><th>City</th><th class="n">24K / 10 g</th><th class="n">22K / 10 g</th><th class="n">18K / 10 g</th><th class="n">Silver / kg</th></tr>'+(rows||'<tr><td colspan="5" class="small">No matching city.</td></tr>');
-}
-$('city').innerHTML=CITIES.slice().sort(function(a,b){return a[0].localeCompare(b[0])}).map(function(c){return '<option>'+c[0]+'</option>'}).join('');
-if(!st.city)st.city='Mumbai';
-$('city').value=cityOf(st.city)[0];
-$('city').onchange=function(){st.city=$('city').value;persist();cities();calc()};
-$('cityQ').oninput=cities;
 function calc(){
   var m=$('cMetal').value,pur=parseFloat($('cPur').value)||1,w=parseFloat($('cW').value)||0,mk=parseFloat($('cM').value)||0,tx=parseFloat($('cT').value)||0;
-  var c=cityOf(st.city);
-  var perG=m==='gold'?st.g/10*(1+c[1]/100):st.s/1000*(1+c[2]/100);
-  $('cCity').textContent=c[0];
+  var perG=m==='gold'?st.g/10:st.s/1000;
   var base=perG*pur*w,make=base*mk/100,gst=(base+make)*tx/100;
   $('cTot').textContent=inr(base+make+gst);
   $('cBrk').textContent='Metal '+inr(base)+' + making '+inr(make)+' + GST '+inr(gst);
@@ -223,7 +182,7 @@ $('reset').onclick=function(){if(confirm('Reset to the starting rates and clear 
 ['cMetal'].forEach(function(i){$(i).onchange=function(){fillPur();calc()}});
 ['cPur','cW','cM','cT'].forEach(function(i){$(i).oninput=calc;$(i).onchange=calc});
 
-var PREM=(typeof st.prem==='number')?st.prem:9.2;$('prem').value=PREM;
+$('prem').value=(typeof st.premG==='number')?st.premG:18;$('premS').value=(typeof st.premS==='number')?st.premS:33;
 function stamp(g,s){
   var d=new Date(),iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   var last=st.hist[st.hist.length-1];
@@ -238,9 +197,9 @@ function live(){
   Promise.all([getJSON('https://api.gold-api.com/price/XAU'),getJSON('https://api.gold-api.com/price/XAG'),getJSON('https://open.er-api.com/v6/latest/USD')]).then(function(r){
     var xau=r[0].price,xag=r[1].price,fx=r[2].rates&&r[2].rates.INR;
     if(!(xau>0&&xag>0&&fx>0))throw new Error('Unexpected data');
-    var f=1+(parseFloat($('prem').value)||0)/100,oz=31.1034768;
-    stamp(Math.round(xau/oz*10*fx*f),Math.round(xag/oz*1000*fx*f));
-    st.prem=parseFloat($('prem').value)||0;
+    var pg=parseFloat($('prem').value)||0,ps=parseFloat($('premS').value)||0,oz=31.1034768;
+    stamp(Math.round(xau/oz*10*fx*(1+pg/100)),Math.round(xag/oz*1000*fx*(1+ps/100)));
+    st.premG=pg;st.premS=ps;
     var n=new Date();st.asOf='Live · '+n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+', '+n.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
     persist();render();
     setLive(true,'Live rates connected','Gold $'+xau.toFixed(2)+'/oz · Silver $'+xag.toFixed(2)+'/oz · USD/INR '+fx.toFixed(2));
@@ -249,7 +208,7 @@ function live(){
   });
 }
 $('refresh').onclick=live;
-$('prem').onchange=live;
+$('prem').onchange=live;$('premS').onchange=live;
 setInterval(live,60000);
 fillPur();render();live();
 })();
